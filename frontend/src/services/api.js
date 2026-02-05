@@ -5,7 +5,9 @@
  */
 
 // base URL for API requests
-const API_BASE = '/api';
+// In production, use the full backend URL; in development, use relative path (Vite proxy)
+const API_BASE = import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD ? 'https://candidate-selection-api.onrender.com/api' : '/api');
 
 /**
  * Fetch all candidates with pagination and filtering
