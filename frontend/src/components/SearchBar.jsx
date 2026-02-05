@@ -4,10 +4,16 @@
  * Debounces input to avoid excessive API calls
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 function SearchBar({ onSearch }) {
   const [query, setQuery] = useState('');
+  const onSearchRef = useRef(onSearch);
+
+  // Keep ref updated with latest callback
+  useEffect(() => {
+    onSearchRef.current = onSearch;
+  }, [onSearch]);
 
   /**
    * Debounce search to avoid too many API calls
@@ -15,12 +21,12 @@ function SearchBar({ onSearch }) {
    */
   useEffect(() => {
     const timer = setTimeout(() => {
-      onSearch(query);
+      onSearchRef.current(query);
     }, 300);
 
     // cleanup timer on unmount or query change
     return () => clearTimeout(timer);
-  }, [query, onSearch]);
+  }, [query]);
 
   return (
     <div className="search-bar">

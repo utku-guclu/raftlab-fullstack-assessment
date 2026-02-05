@@ -4,7 +4,7 @@
  * Manages global state and renders main layout
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Header from './components/Header';
 import CandidateList from './components/CandidateList';
 import Stats from './components/Stats';
@@ -26,17 +26,8 @@ function App() {
   const [statusFilter, setStatusFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  /**
-   * Fetch candidates on mount and when filters change
-   * Handles loading states and errors
-   */
-  useEffect(() => {
-    loadCandidates();
-    loadStats();
-  }, [currentPage, statusFilter]);
-
   // load candidates from API
-  const loadCandidates = async () => {
+  const loadCandidates = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetchCandidates(currentPage, 10, statusFilter);
@@ -48,17 +39,26 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, statusFilter]);
 
   // load statistics from API
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       const response = await fetchStats();
       setStats(response.data);
     } catch (err) {
       console.error('Failed to load stats:', err);
     }
-  };
+  }, []);
+
+  /**
+   * Fetch candidates on mount and when filters change
+   * Handles loading states and errors
+   */
+  useEffect(() => {
+    loadCandidates();
+    loadStats();
+  }, [loadCandidates, loadStats]);
 
   /**
    * Handle status update for a candidate
@@ -84,7 +84,7 @@ function App() {
    * Handle search functionality
    * Fetches filtered results from API
    */
-  const handleSearch = async (query) => {
+  const handleSearch = useCallback(async (query) => {
     setSearchQuery(query);
 
     if (query.length < 2) {
@@ -102,7 +102,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [loadCandidates]);
 
   // render loading state
   if (loading && candidates.length === 0) {
